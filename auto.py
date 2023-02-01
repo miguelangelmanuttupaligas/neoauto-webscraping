@@ -1,5 +1,6 @@
 class Auto:
-    def __init__(self, date, price, make, model, body_type, model_year, construction_year, milage, transmition_type, fuel, cylinder, number_of_doors, traction, color, url):
+    def __init__(self, date, price, make, model, body_type, model_year, construction_year, milage, transmition_type,
+                 fuel, cylinder, number_of_doors, traction, color, url):
         self._date = date
         self._price = price
         self._make = make
