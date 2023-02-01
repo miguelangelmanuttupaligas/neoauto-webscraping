@@ -45,7 +45,7 @@ def get_articles_from_link(url_base, url):
         link = url_base + link
         print(f'Processing: {link}')
         soup_ = BeautifulSoup(requests.get(link).text, 'html.parser')
-        date = datetime.now(tz=tz.gettz('America/Lima')).strftime("%m-%d-%Y %H:%M:%S")
+        date = datetime.now(tz=tz.gettz('America/Lima')).strftime("%Y-%m-%d %H:%M:%S")
         data_auto = dict()
         meta_content = soup_.find_all('div', class_='idSOrq')
         content = soup_.find_all('div', class_='htOtEa')
@@ -66,7 +66,7 @@ def get_articles_from_link(url_base, url):
 
 
 def to_save(data_csv, results, user, password, host, port, database):
-    engine = create_engine(url="mysql+pymysql://{0}:{1}@{2}:{3}/{4}".format('user', 'password', 'host', 'port', 'database'))
+    engine = create_engine(url="mysql+pymysql://{0}:{1}@{2}:{3}/{4}".format(user, password, host, port, database))
 
     columns = ['ID', 'Fecha', 'Precio', 'Año Modelo', 'Kilometraje', 'Transmisión', 'Combustible',
                'Cilindrada', 'Categoría', 'Marca', 'Modelo', 'Año de fabricación',
@@ -74,7 +74,7 @@ def to_save(data_csv, results, user, password, host, port, database):
                ]
     df = pd.DataFrame.from_dict(results)
     df.to_csv(data_csv, index=False, header=True, columns=columns)
-    # df.to_sql(name='nombre_tabla', con=engine, chunksize=1000, )
+    df.to_sql(name='data', con=engine, if_exists='append', index=False, chunksize=1000)
 
 
 def chunks(lst, n):
@@ -103,7 +103,8 @@ def main_multi(url_base, url, search_csv, data_csv, user, password, host, port, 
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # futures = [executor.submit(get_articles_from_list_link, chunk) for chunk in list_chunks]
-        futures = [executor.submit(lambda p: get_articles_from_list_link(*p), [url_base, chunk]) for chunk in list_chunks]
+        futures = [executor.submit(lambda p: get_articles_from_list_link(*p), [url_base, chunk]) for chunk in
+                   list_chunks]
         temp_results = [f.result() for f in futures]
         for result in temp_results:
             data_results += result
@@ -176,10 +177,10 @@ if __name__ == '__main__':
 
     print(URL_BASE, URL, SEARCH_CSV, DATA_CSV, NUMBER_PROCESS, NUMBER_ARTICLES_PER_PAGE)
 
-    start_time = time.time()
-    main_single(URL_BASE, URL, SEARCH_CSV, DATA_CSV,
-                USER_DATABASE, PASSWORD_DATABASE, HOST_DATABASE, PORT_DATABASE, NAME_DATABASE)
-    print("--- %s seconds ---" % (time.time() - start_time))
+    # start_time = time.time()
+    # main_single(URL_BASE, URL, SEARCH_CSV, DATA_CSV,
+    #            USER_DATABASE, PASSWORD_DATABASE, HOST_DATABASE, PORT_DATABASE, NAME_DATABASE)
+    # print("--- %s seconds ---" % (time.time() - start_time))
 
     start_time = time.time()
     main_multi(URL_BASE, URL, SEARCH_CSV, DATA_CSV,
